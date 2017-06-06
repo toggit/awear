@@ -12,6 +12,10 @@ var express     = require('express'),
     mongoose    = require('mongoose'),
     path        = require('path');
 
+
+//****************** set port *********************************** */
+var port  = process.env.PORT || 5000;
+
 logger.info("starting Aware Application")
 //****************** MongoDB Connections ****************************
 //overwrite mongoose promise with promise module
@@ -70,6 +74,7 @@ app.post('/api/reports', apiCtrl.getReports);
 
 
 //*************  Start Server ***********************  
-http.createServer(app).listen(2020,function(){
+
+http.createServer(app).listen(port,function(){
     logger.info("start listening...")
 });
