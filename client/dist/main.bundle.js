@@ -331,14 +331,12 @@ var AppComponent = (function () {
         // console.log('date change: ' + momentVal);
         this.reportService.getReportsByDate(this.momentValue)
             .subscribe(function (reports) {
-            if (reports.length > 0) {
-                _this.reports = reports;
-                _this.geoCount = _this.reportService.getGeoCount();
-                _this.tagCount = _this.reportService.getTagCount();
-                if (_this.geoCount > 0) {
-                    _this.lat = _this.reports[0].location.coordinates[1];
-                    _this.lng = _this.reports[0].location.coordinates[0];
-                }
+            _this.reports = reports;
+            _this.geoCount = _this.reportService.getGeoCount();
+            _this.tagCount = _this.reportService.getTagCount();
+            if (_this.geoCount > 0) {
+                _this.lat = _this.reports[0].location.coordinates[1];
+                _this.lng = _this.reports[0].location.coordinates[0];
             }
         }, function (error) { return console.log(error); });
     };

@@ -28,7 +28,6 @@ export class AppComponent {
     this.reportService.getReportsByDate(this.momentValue)
       .subscribe(
       (reports: any[]) => {
-        if (reports.length > 0) {
           this.reports = reports;
           this.geoCount = this.reportService.getGeoCount();
           this.tagCount = this.reportService.getTagCount();
@@ -36,7 +35,6 @@ export class AppComponent {
             this.lat = this.reports[0].location.coordinates[1];
             this.lng = this.reports[0].location.coordinates[0];
           }
-        }
       },
       (error) => console.log(error)
       );
