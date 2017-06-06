@@ -1,0 +1,38 @@
+<nav class="navbar navbar-toggleable-md navbar-inverse  bg-inverse bg-darkblue fixed-top">
+  <a class="navbar-brand" href="#">Awear Solutions</a>
+  <div class="container">
+    <span class="navbar-brand"> select date and time</span>
+
+    <input [ngModel]="momentValue | amDateFormat: 'DD-MM-YYYY HH:mm'" [dateTimePicker]="momentValue" [theme]="'#292b2c'" (dateTimePickerChange)="setMoment($event)"
+      readonly />
+    <input [ngModel]="momentValue | amAdd: 2 : 'hours' | amDateFormat: 'DD-MM-YYYY HH:mm'" disabled />
+  </div>
+</nav>
+
+<div class="container">
+  <div class="starter-template">
+    <h2>{{ title }}</h2>
+    <p class="lead">number of tags fetch : {{tagCount}} number of geos fetch : {{geoCount}} </p>
+  </div>
+</div>
+
+<!-- this creates a google map on the page with the given lat/lng from -->
+<!-- the component as the initial center of the map: -->
+
+<agm-map [latitude]="lat" [longitude]="lng">
+  <!--<agm-marker [latitude]="lat" [longitude]="lng" [label]="'Z'" (markerClick)="clickedMarker('Z', i)" ></agm-marker>-->
+  <agm-marker *ngFor="let mark of reports; let i = index" (markerClick)="clickedMarker(mark.label, i)" [latitude]="mark.location.coordinates[1]"
+    [longitude]="mark.location.coordinates[0]" [markerDraggable]="true" [label]="mark.label">
+    <agm-info-window>
+      <strong>{{mark | json}}</strong>
+    </agm-info-window>
+  </agm-marker>
+</agm-map>
+
+<footer class="footer">
+  <div class="container">
+    <span class="text-muted">
+      Made with <i class="fa fa-heart" aria-hidden="true" style="color: red;"></i>️ by Tomer
+</span>
+</div>
+</footer>
