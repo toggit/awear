@@ -484,19 +484,20 @@ var ReportsService = (function () {
             tag_elm.label = 'T';
             _this.geo.forEach(function (geo_elm, idx, arr) {
                 geo_elm.label = 'G';
-                if (tag_elm.client_id === geo_elm.client_id) { }
-                if (tag_elm.match == false) {
-                    var geo_time = new Date(geo_elm.time).getTime();
-                    if (tag_time === geo_time) {
-                        console.log("match found: client_id=" + tag_elm.client_id + "  geo_index=" + geo_elm.index);
-                        tag_elm.match = true;
-                    }
-                    else {
-                        var diff = Math.abs(tag_time - geo_time);
-                        if (tag_elm.diff > diff)
-                            tag_elm.diff = diff;
-                        tag_elm.location = geo_elm.location;
-                        tag_elm.geo_index = geo_elm.index;
+                if (tag_elm.client_id === geo_elm.client_id) {
+                    if (tag_elm.match == false) {
+                        var geo_time = new Date(geo_elm.time).getTime();
+                        if (tag_time === geo_time) {
+                            console.log("match found: client_id=" + tag_elm.client_id + "  geo_index=" + geo_elm.index);
+                            tag_elm.match = true;
+                        }
+                        else {
+                            var diff = Math.abs(tag_time - geo_time);
+                            if (tag_elm.diff > diff)
+                                tag_elm.diff = diff;
+                            tag_elm.location = geo_elm.location;
+                            tag_elm.geo_index = geo_elm.index;
+                        }
                     }
                 }
             });
