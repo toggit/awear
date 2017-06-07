@@ -448,10 +448,10 @@ var ReportsService = (function () {
         this.tag = [];
     }
     ReportsService.prototype.getTagCount = function () {
-        return this.geo.length;
+        return this.tag.length;
     };
     ReportsService.prototype.getGeoCount = function () {
-        return this.tag.length;
+        return this.geo.length;
     };
     ReportsService.prototype.getReportsByDate = function (begindDate) {
         var _this = this;

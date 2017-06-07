@@ -11,11 +11,11 @@ export class ReportsService {
   private tag: any[] = [];
 
   getTagCount() {
-    return this.geo.length;
+    return this.tag.length;
   }
 
   getGeoCount() {
-    return this.tag.length;
+    return this.geo.length;
   }
 
   getReportsByDate(begindDate) {
