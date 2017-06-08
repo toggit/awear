@@ -459,6 +459,7 @@ var ReportsService = (function () {
         return this.http.post('/api/reports', { "date": begindDate })
             .map(function (response) {
             var data = response.json();
+            _this.clients = {};
             _this.geoLength = 0;
             _this.tagLength = 0;
             _this.findClosetGeo4Tag(data); // O(n)

@@ -26,6 +26,7 @@ export class ReportsService {
       (response: Response) => {
         const data: any[] = response.json();
 
+        this.clients = {};
         this.geoLength = 0;
         this.tagLength = 0;
 
