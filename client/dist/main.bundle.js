@@ -444,64 +444,75 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var ReportsService = (function () {
     function ReportsService(http) {
         this.http = http;
-        this.geo = [];
-        this.tag = [];
+        this.geoLength = 0;
+        this.tagLength = 0;
+        this.clients = {};
     }
     ReportsService.prototype.getTagCount = function () {
-        return this.tag.length;
+        return this.geoLength;
     };
     ReportsService.prototype.getGeoCount = function () {
-        return this.geo.length;
+        return this.tagLength;
     };
     ReportsService.prototype.getReportsByDate = function (begindDate) {
         var _this = this;
         return this.http.post('/api/reports', { "date": begindDate })
             .map(function (response) {
             var data = response.json();
-            _this.geo.splice(0, _this.geo.length);
-            _this.tag.splice(0, _this.tag.length);
-            data.filter(function (elm, idx, arr) {
-                if (elm.type === "geo") {
-                    _this.geo.push(elm);
-                }
-                else {
-                    _this.tag.push(elm);
-                }
-                return elm;
-            });
-            if (_this.geo.length > 0 && _this.tag.length > 0) {
-                _this.findClosetGeo4Tag();
-            }
+            _this.geoLength = 0;
+            _this.tagLength = 0;
+            _this.findClosetGeo4Tag(data); // O(n)
+            _this.removeTagsWithoutMatch(data); // O(n)
             return data;
         });
     };
-    ReportsService.prototype.findClosetGeo4Tag = function () {
+    ReportsService.prototype.findClosetGeo4Tag = function (arr) {
         var _this = this;
-        this.tag.forEach(function (tag_elm, idx, arr) {
-            tag_elm.match = false;
-            var tag_time = new Date(tag_elm.time).getTime();
-            tag_elm.diff = tag_time;
-            tag_elm.label = 'T';
-            _this.geo.forEach(function (geo_elm, idx, arr) {
-                geo_elm.label = 'G';
-                if (tag_elm.client_id === geo_elm.client_id) {
-                    if (tag_elm.match == false) {
-                        var geo_time = new Date(geo_elm.time).getTime();
-                        if (tag_time === geo_time) {
-                            console.log("match found: client_id=" + tag_elm.client_id + "  geo_index=" + geo_elm.index);
-                            tag_elm.match = true;
-                        }
-                        else {
-                            var diff = Math.abs(tag_time - geo_time);
-                            if (tag_elm.diff > diff)
-                                tag_elm.diff = diff;
-                            tag_elm.location = geo_elm.location;
-                            tag_elm.geo_index = geo_elm.index;
-                        }
+        arr.forEach(function (elm, idx, arr) {
+            if (!(_this.clients.hasOwnProperty(elm.client_id))) {
+                _this.clients[elm.client_id] = {};
+                _this.clients[elm.client_id].prevGeoIndx = -1;
+            }
+            if (elm.type === "geo") {
+                _this.geoLength++;
+                elm.label = 'G';
+                _this.clients[elm.client_id].prevGeoIndx = idx;
+            }
+            else {
+                elm.label = 'T';
+                _this.tagLength++;
+                if (_this.clients[elm.client_id].prevGeoIndx != -1) {
+                    elm.geo_index = arr[_this.clients[elm.client_id].prevGeoIndx].index;
+                    elm.diff = Math.abs(new Date(elm.time).getTime() - new Date(arr[_this.clients[elm.client_id].prevGeoIndx].time).getTime());
+                    elm.location = arr[_this.clients[elm.client_id].prevGeoIndx].location;
+                }
+            }
+            return elm;
+        });
+    };
+    ReportsService.prototype.removeTagsWithoutMatch = function (arr) {
+        var tagsWithoutGeo = [];
+        for (var i = arr.length; i-- > 0;) {
+            if (arr[i].type === "geo") {
+                this.clients[arr[i].client_id].prevGeoIndx = i;
+            }
+            else {
+                if (this.clients[arr[i].client_id].prevGeoIndx != -1) {
+                    if (!arr[i].hasOwnProperty("diff") || arr[i].diff > (Math.abs(new Date(arr[i].time).getTime() - new Date(arr[this.clients[arr[i].client_id].prevGeoIndx].time).getTime()))) {
+                        arr[i].geo_index = arr[this.clients[arr[i].client_id].prevGeoIndx].index;
+                        arr[i].location = arr[this.clients[arr[i].client_id].prevGeoIndx].location;
                     }
                 }
-            });
-        });
+                else {
+                    arr.push(i);
+                }
+            }
+        }
+        for (var i = tagsWithoutGeo.length - 1; i >= 0; i--) {
+            console.log("geo not found for tag with clientId: " + arr[i].client_id);
+            arr.splice(tagsWithoutGeo[i], 1);
+            this.tagLength--;
+        }
     };
     return ReportsService;
 }());

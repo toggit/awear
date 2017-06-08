@@ -7,15 +7,17 @@ export class ReportsService {
 
   constructor(private http: Http) { }
 
-  private geo: any[] = [];
-  private tag: any[] = [];
+  private geoLength: number = 0;
+  private tagLength: number = 0;
+
+  private clients: any = {};
 
   getTagCount() {
-    return this.tag.length;
+    return this.geoLength;
   }
 
   getGeoCount() {
-    return this.geo.length;
+    return this.tagLength;
   }
 
   getReportsByDate(begindDate) {
@@ -24,56 +26,65 @@ export class ReportsService {
       (response: Response) => {
         const data: any[] = response.json();
 
-        this.geo.splice(0, this.geo.length);
-        this.tag.splice(0, this.tag.length)
+        this.geoLength = 0;
+        this.tagLength = 0;
 
-        data.filter(
-          (elm: any, idx: number, arr: any[]) => {
-            if (elm.type === "geo") {
-              this.geo.push(elm);
-            } else {
-              this.tag.push(elm);
-            }
-            return elm;
-          }
-        );
-
-        if (this.geo.length > 0 && this.tag.length > 0) {
-          this.findClosetGeo4Tag();
-        }
+        this.findClosetGeo4Tag(data); // O(n)
+        this.removeTagsWithoutMatch(data);   // O(n)
         return data;
       }
       );
   }
-  
-  findClosetGeo4Tag() {
-    this.tag.forEach(
-      (tag_elm, idx, arr) => {
-        tag_elm.match = false;
-        const tag_time = new Date(tag_elm.time).getTime();
-        tag_elm.diff = tag_time;
-        tag_elm.label = 'T';
-        this.geo.forEach(
-          (geo_elm, idx, arr) => {
-            geo_elm.label = 'G';
-            if (tag_elm.client_id === geo_elm.client_id) {
-              if (tag_elm.match == false) {
-                const geo_time = new Date(geo_elm.time).getTime();
-                if (tag_time === geo_time) {
-                  console.log("match found: client_id=" + tag_elm.client_id + "  geo_index=" + geo_elm.index)
-                  tag_elm.match = true;
-                } else {
-                  let diff = Math.abs(tag_time - geo_time);
-                  if (tag_elm.diff > diff)
-                    tag_elm.diff = diff;
-                  tag_elm.location = geo_elm.location;
-                  tag_elm.geo_index = geo_elm.index;
-                }
-              }
-            }
-          })
+
+  findClosetGeo4Tag(arr: any[]): any {
+
+    arr.forEach((elm: any, idx: number, arr: any[]) => {
+      if (!(this.clients.hasOwnProperty(elm.client_id))) {
+        this.clients[elm.client_id] = {};
+        this.clients[elm.client_id].prevGeoIndx = -1;
       }
-    );
+
+      if (elm.type === "geo") {
+        this.geoLength++;
+        elm.label = 'G';
+        this.clients[elm.client_id].prevGeoIndx = idx;
+      } else {
+        elm.label = 'T';
+        this.tagLength++;
+        if (this.clients[elm.client_id].prevGeoIndx != -1) {
+          elm.geo_index = arr[this.clients[elm.client_id].prevGeoIndx].index;
+          elm.diff = Math.abs(new Date(elm.time).getTime() - new Date(arr[this.clients[elm.client_id].prevGeoIndx].time).getTime())
+          elm.location = arr[this.clients[elm.client_id].prevGeoIndx].location;
+        }
+      }
+
+      return elm;
+    })
+  }
+
+  removeTagsWithoutMatch(arr: any[]) {
+    var tagsWithoutGeo: any[] = [];
+    for (var i = arr.length; i-- > 0;) {
+      if (arr[i].type === "geo") {
+        this.clients[arr[i].client_id].prevGeoIndx = i;
+      } else {
+        if (this.clients[arr[i].client_id].prevGeoIndx != -1) {
+          if (!arr[i].hasOwnProperty("diff") || arr[i].diff > (Math.abs(new Date(arr[i].time).getTime() - new Date(arr[this.clients[arr[i].client_id].prevGeoIndx].time).getTime()))) {
+            arr[i].geo_index = arr[this.clients[arr[i].client_id].prevGeoIndx].index;
+            arr[i].location = arr[this.clients[arr[i].client_id].prevGeoIndx].location;
+          }
+        } else {
+          arr.push(i);
+        }
+      }
+    }
+
+    for (var i = tagsWithoutGeo.length - 1; i >= 0; i--) {
+      console.log("geo not found for tag with clientId: " + arr[i].client_id);
+      arr.splice(tagsWithoutGeo[i], 1);
+      this.tagLength--;
+    }
+
   }
 
 }
