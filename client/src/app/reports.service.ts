@@ -13,11 +13,11 @@ export class ReportsService {
   private clients: any = {};
 
   getTagCount() {
-    return this.geoLength;
+    return this.tagLength;
   }
 
   getGeoCount() {
-    return this.tagLength;
+    return this.geoLength;
   }
 
   getReportsByDate(begindDate) {

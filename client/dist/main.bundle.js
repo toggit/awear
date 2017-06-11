@@ -449,10 +449,10 @@ var ReportsService = (function () {
         this.clients = {};
     }
     ReportsService.prototype.getTagCount = function () {
-        return this.geoLength;
+        return this.tagLength;
     };
     ReportsService.prototype.getGeoCount = function () {
-        return this.tagLength;
+        return this.geoLength;
     };
     ReportsService.prototype.getReportsByDate = function (begindDate) {
         var _this = this;
